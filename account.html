@@ -1,0 +1,182 @@
+<!-- attempt to establish a connection with the database -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    // ajax get request to determine if database is active
+    $.ajax({
+        url: "php/db_connect.php",
+        success: function(result) {
+
+            // failed to connect to database
+            if (result == "error") {
+                alert("Failed to Connect to Database. MySQL Connection may be off");
+                location.href = "index.html";
+            }
+        }
+    })
+</script>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Account Page</title>
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+
+    <header>
+        <h1>Banking System</h1>
+    </header>
+
+    <body>
+        <div class="container">
+            <script>
+                // ajax get request to get username for displaying
+                $.ajax({
+                    url: 'php/get.php',
+                    dataType: "json",
+                    async: false,
+                    success: function(data) {
+                        id = data[0];
+                        email = data[1];
+                        username = data[2];
+                        age = data[3];
+                        balance = data[4];
+
+                        // attempt to visit a session required page without being logged in
+                        if (username == null) {
+                            location.href = "php/unauthorized.php";
+                        }
+                    }
+                });
+            </script>
+
+            <div class="right">
+                <label>Logged In: <script>document.write(username);</script></label>
+            </div>
+        
+            <div class="redirects">
+                <button onclick="location.href='home.html'">Back to Home</button>
+                <button onclick="location.href='php/logout.php'">Log Out</button>
+                <h2>MY ACCOUNT</h2>
+            </div>
+
+            <form>
+                <div class="text-form">
+                    <label>Account ID:</label>
+                    <input type="number" id="id" readonly>
+                    
+                    <label>Email:</label>
+                    <input type="text" id="email" maxlength="16">
+
+                    <label>Username:</label>
+                    <input type="text" id="username" maxlength="6">
+
+                    <label>Age:</label>
+                    <input type="number" id="age">
+
+                    <label>Current Balance:</label>
+                    <input type="text" id="balance" readonly>
+                </div>
+
+                <div class="button-form">
+                    <input type="button" id="update" value="Update">
+                    <input type="button" id="delete" value="Delete">
+                </div>
+                <div id="result" style="color:red">
+            </form>
+
+            <script>
+                // gets user data from HTML input elements for storing
+                document.getElementById("id").value = id;
+                document.getElementById("email").value = email;
+                document.getElementById("username").value = username;
+                document.getElementById("age").value = age;
+                document.getElementById("balance").value = "$" + parseInt(balance).toLocaleString();
+                let message = document.getElementById("result");
+
+                // event listener for update button
+                document.getElementById("update").addEventListener("click", function() {
+
+                    let newEmail = document.getElementById("email").value;
+                    let newUsername = document.getElementById("username").value;
+                    let newAge = document.getElementById("age").value;
+
+                    if (newEmail.length == 0 || newUsername.length == 0 || newAge.length == 0) {
+                        message.innerHTML = "Insufficient Information, try again";
+                    
+                    } else if (!newEmail.endsWith("@email.com")) {
+                        message.innerHTML = "Email must end with @email.com";
+                    
+                    } else if (newEmail == newUsername) {
+                        message.innerHTML = "Email and Username cannot be the same";
+
+                    } else if (newEmail.includes(" ") || newUsername.includes(" ")) {
+                        message.innerHTML = "Spaces are not permitted";
+
+                    } else if (newEmail.length > 16 || newEmail.length < 12) {
+                        message.innerHTML = "Email Character Range: 12 - 16 (including @email.com)";
+
+                    } else if (newUsername.length > 6 || newUsername.length < 3) {
+                        message.innerHTML = "Username Character Range: 3 - 6";
+
+                    } else if (newAge < 1 || newAge > 100) {
+                        message.innerHTML = "Age Ranges: (1-100)";
+                    
+                    } else {
+                        // sends a post request with newly updated data to determine whether it is valid
+                        fetch("php/update.php", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "id=" + id + "&currentEmail=" + email + "&email=" + newEmail + "&username=" + newUsername + "&age=" + newAge
+                        })
+                        
+                        // server checks if any new inputted data match other records in the database - returning a result
+                        .then(response => response.text())
+                        .then(function(result) {
+                            if (result == "taken-email") {
+                                message.innerHTML = "Email Already Taken";
+                            
+                            } else if (result == "taken-username") {
+                                message.innerHTML = "Username Already Taken";
+
+                            } else if (result == "same-password") {
+                                message.innerHTML = "Username cannot be the same as your Password";
+
+                            } else {
+                                location.reload();
+                                alert("Your Account has been Updated");
+                            }
+                        })
+                    }
+                })
+
+                // event listener for delete button
+                document.getElementById("delete").addEventListener("click", function() {
+                    let choice = confirm("Are you sure you want to delete your account?");
+                    if (choice) {
+                        let id = document.getElementById("id").value;
+
+                        // sends a post request with the user's id in order to delete account
+                        fetch("php/delete.php", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "id=" + id
+                        })
+
+                        // returns result indicating whether there was an error removing the account
+                        .then(response => response.text())
+                        .then(function(result) {
+                            if (result != "deleted") {
+                                message.innerHTML = "Error Occured. We were unable to delete your account";
+                                return;
+                            }
+                            alert("Your Account has been Deleted");
+                            location.href = "index.html";
+                        })
+                    }
+                })
+            </script>
+        </div>
+    </body>
+</html>

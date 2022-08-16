@@ -1,0 +1,93 @@
+body {
+    background: #0066CC;
+    font-family: "verdana";
+}
+
+h1 {
+    margin: 0 auto;
+    padding: 20px;
+    width: 45%;
+
+    color: white;
+    background: #003399;
+}
+
+b {
+    display: table-cell;
+    padding-right: 1em;
+}
+
+li {
+    display: table-row;
+    font-size: 20px;
+}
+
+.container {
+    margin: 0 auto;
+    padding: 20px 20px 300px;
+    width: 45%;
+    background: white;
+}
+
+.redirects button {
+    padding: 5px;
+    text-transform: uppercase;
+    background: #0066CC;
+    color: white;
+}
+
+.text-form, select {
+    display: inline-block;
+    width: 200px;
+}
+
+.text-form input, select {
+    font-size: 15px;
+    border: 2px solid black;
+    background: darkgrey;
+}
+
+.button-form input {
+    margin: 5px auto;
+    padding: 3px 20px;
+
+    background: #0066CC;
+    color: white;
+}
+
+a:hover {
+    color: red;
+    font-weight: bold;
+}
+
+.button-form input:hover, button:hover { background: black; }
+
+.right { float: right; }
+
+.right label {
+    font-weight: bold;
+    color: darkblue;
+}
+
+table {
+    border-collapse: collapse; margin: 0;
+    border: 2px solid black;
+    background: rgb(225, 226, 226);
+}
+
+td { border: 1px solid grey; padding: 2px 10px; }
+table tr td:nth-child(2) { width: 8vw }
+table tr td:nth-child(3) { width: 5vw }
+
+/* media tags for resizing the accounts table on the home page */
+@media screen and (max-width: 1200px) {
+    table { font-size: 13px; }
+}
+
+@media screen and (max-width: 1000px) {
+    table { font-size: 10px; }
+}
+
+@media screen and (max-width: 800px) {
+    table { display: none; }
+}

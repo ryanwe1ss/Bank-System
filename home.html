@@ -1,0 +1,111 @@
+<!-- attempt to establish a connection with the database -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    // ajax get request to determine if database is active
+    $.ajax({
+        url: "php/db_connect.php",
+        success: function(result) {
+
+            // failed to connect to database
+            if (result == "error") {
+                alert("Failed to Connect to Database. MySQL Connection may be off");
+                location.href = "index.html";
+            }
+        }
+    })
+</script>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home Page</title>
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+
+    <header>
+        <h1>Banking System</h1>
+    </header>
+
+    <body>
+        <div class="container">
+            <script>
+                // ajax get request to get username for displaying
+                $.ajax({
+                    url: "php/get.php",
+                    dataType: "json",
+                    async: false,
+                    success: function(data) {
+                        username = data[2];
+
+                        // attempt to visit a session required page without being logged in
+                        if (username == null) {
+                            location.href = "php/unauthorized.php";
+                        }
+                    }
+                });
+            </script>
+
+            <div class="right">
+                <label>Logged In: <script>document.write(username);</script></label>
+            </div>
+        
+            <div class="redirects">
+                <button onclick="location.href='send.html'">Send Money</button>
+                <button onclick="location.href='account.html'">My Account</button>
+                <button onclick="location.href='changepassword.html'">Change Password</button>
+                <button onclick="location.href='php/logout.php'">Log Out</button>
+            </div>
+
+            <h2>Welcome to the Home Page</h2>
+            <div id="info"></div><br>
+            <div id="accounts"></div>
+
+            <script>
+                let count = 0;
+                let balance = 0;
+
+                // fetch get request to read all user data - displaying it in a table
+                fetch("php/getall.php", { credentials: "include" })
+                    .then(response => response.json())
+                    .then(function(row) {
+                        let table = document.createElement("table");
+                        let th = table.insertRow();
+
+                        // inserting 'th' cells to identify each column
+                        th.insertCell().appendChild(document.createTextNode("ID"));
+                        th.insertCell().appendChild(document.createTextNode("Email"));
+                        th.insertCell().appendChild(document.createTextNode("Username"));
+                        th.insertCell().appendChild(document.createTextNode("Age"));
+                        th.insertCell().appendChild(document.createTextNode("Balance"));
+
+                        // loop through rows
+                        for (let i = 0; i < row.length; i++) {
+                            let tr = table.insertRow();
+                            let td1 = tr.insertCell();
+                            let td2 = tr.insertCell();
+                            let td3 = tr.insertCell();
+                            let td4 = tr.insertCell();
+                            let td5 = tr.insertCell();
+                            
+                            // calculate total database balance
+                            balance += parseInt(row[i][4]);
+
+                            // appending row data to individual columns
+                            td1.appendChild(document.createTextNode(row[i][0]));
+                            td2.appendChild(document.createTextNode(row[i][1]));
+                            td3.appendChild(document.createTextNode(row[i][2]));
+                            td4.appendChild(document.createTextNode(row[i][3]));
+                            td5.appendChild(document.createTextNode("$" + parseInt(row[i][4]).toLocaleString()));
+
+                            count++;
+                        }
+                        // display all data on home page
+                        document.getElementById("info").innerHTML = "Accounts: " + count + 
+                            "<br>Total Cash: $" + balance.toLocaleString();
+
+                        document.getElementById("accounts").appendChild(table);
+                    })
+            </script>
+        </div>
+    </body>
+</html>

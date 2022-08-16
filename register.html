@@ -1,0 +1,138 @@
+<!-- attempt to establish a connection with the database -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    // ajax get request to determine if database is active
+    $.ajax({
+        url: "php/db_connect.php",
+        success: function(result) {
+
+            // failed to connect to database
+            if (result == "error") {
+                alert("Failed to Connect to Database. MySQL Connection may be off");
+                location.href = "index.html";
+            }
+        }
+    })
+</script>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Registration Page</title>
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+
+    <header>
+        <h1>Banking System</h1>
+    </header>
+
+    <body>
+        <div class="container">
+            <div class="right">
+                <label>You are currently not logged in</label>
+            </div>
+
+            <div class="redirects">
+                <button onclick="location.href='index.html'">Back to Login</button>
+            </div>
+
+            <h2>REGISTER ACCOUNT</h2>
+            <form>
+                <div class="text-form">
+                    <label>Email:</label>
+                    <input type="text" name="email" id="email" maxlength="16">
+
+                    <label>Username:</label>
+                    <input type="text" name="username" id="username" maxlength="6">
+
+                    <label>Age:</label>
+                    <input type="number" name="age" id="age">
+
+                    <label>Password:</label>
+                    <input type="password" name="password" id="password" maxlength="12">
+
+                    <label>Confirm Password:</label>
+                    <input type="password" name="confirmPassword" id="confirmPassword" maxlength="12">
+                </div>
+
+                <div class="button-form">
+                    <input type="button" name="register" id="register" value="Register">
+                    <input type="reset" onclick="location.href='register.html'">
+                </div>
+                <div id="result">
+            </form>
+
+            <script>
+                let message = document.getElementById("result");
+
+                // event listener for register button
+                document.getElementById("register").addEventListener("click", function() {
+
+                    // gets user data from HTML input elements for storing
+                    let email = document.getElementById("email").value;
+                    let username = document.getElementById("username").value;
+                    let age = document.getElementById("age").value;
+                    let password = document.getElementById("password").value;
+                    let confirmPassword = document.getElementById("confirmPassword").value;
+
+                    message.style.color = "red";
+                    if ((email, username, age, password, confirmPassword).length == 0) {
+                        message.innerHTML = "Insufficient Information, try again";
+                    
+                    } else if (!email.endsWith("@email.com")) {
+                        message.innerHTML = "Email must end with @email.com";
+
+                    } else if (email == username) {
+                        message.innerHTML = "Email and Username cannot be the same"
+
+                    } else if (email.includes(" ") || username.includes(" ") || password.includes(" ")) {
+                        message.innerHTML = "Spaces are not permitted";
+
+                    } else if (email == password || username == password) {
+                        message.innerHTML = "Email/Username cannot be the same as password";
+                    
+                    } else if (email.length > 16 || email.length < 12) {
+                        message.innerHTML = "Email Character Range: 12 - 16 (including @email.com)";
+
+                    } else if (username.length > 6 || username.length < 3) {
+                        message.innerHTML = "Username Character Range: 3 - 6";
+
+                    } else if (password.length < 3 || password.length > 12) {
+                        message.innerHTML = "Password Character Range: (3-12)";
+                    
+                    } else if (age < 1 || age > 100) {
+                        message.innerHTML = "Age Ranges: (1-100)";
+                    
+                    } else if (password != confirmPassword) {
+                        message.innerHTML = "Password does not match confirmed";
+                        
+                    } else {
+                        // sends post request to check if user input is valid and not taken already
+                        fetch("php/register.php", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "email=" + email + "&username=" + username + "&age=" + age +
+                                "&password=" + password + "&confirmPassword=" + confirmPassword
+                        })
+
+                        // returns result indicating the registration process
+                        .then(response => response.text())
+                        .then(function(result) {
+                            if (result == "taken-email") {
+                                message.innerHTML = "Email Already Taken";
+                            
+                            } else if (result == "taken-username") {
+                                message.innerHTML = "Username Already Taken";
+
+                            } else {
+                                alert("Your Account has been Created");
+                                location.href = "index.html";
+                            }
+                        })
+                    }
+                })
+            </script>
+        </div>
+    </body>
+</html>

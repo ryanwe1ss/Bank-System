@@ -1,0 +1,138 @@
+<!-- attempt to establish a connection with the database -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    // ajax get request to determine if database is active
+    $.ajax({
+        url: "php/db_connect.php",
+        success: function(result) {
+
+            // failed to connect to database
+            if (result == "error") {
+                alert("Failed to Connect to Database. MySQL Connection may be off");
+                location.href = "index.html";
+            }
+        }
+    })
+</script>
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Transfer Funds</title>
+        <link rel="stylesheet" href="css/styles.css">
+    </head>
+
+    <header>
+        <h1>Banking System</h1>
+    </header>
+
+    <body>
+        <div class="container">
+            <script>
+                // ajax get request to get username for displaying
+                $.ajax({
+                    url: 'php/get.php',
+                    dataType: "json",
+                    async: false,
+                    success: function(data) {
+                        id = data[0];
+                        email = data[1];
+                        username = data[2];
+                        age = data[3];
+                        balance = data[4];
+
+                        // attempt to visit a session required page without being logged in
+                        if (username == null) {
+                            location.href = "php/unauthorized.php";
+                        }
+                    }
+                });
+            </script>
+
+            <div class="right">
+                <label>Logged In: <script>document.write(username);</script></label>
+            </div>
+
+            <div class="redirects">
+                <button onclick="location.href='home.html'">Back to Home</button>
+                <button onclick="location.href='php/logout.php'">Log Out</button>
+            </div>
+
+            <h2>SEND MONEY</h2>
+            <form>
+                <div class="text-form">
+                    <label>Current Balance: $<script>document.write(parseInt(balance).toLocaleString());</script></label><br><br>
+
+                    <label>Select a User:</label>
+                    <select id="selectUser">
+                        <option></option>
+                    </select><br>
+
+                    <label>Amount:</label>
+                    <input type="number" id="amount" placeholder="$">
+                </div>
+
+                <div class="button-form">
+                    <input type="button" id="withdraw" value="Transfer Funds">
+                </div>
+                <div id="result" style="color:red">
+            </form>
+        </div>
+
+        <script>
+            // fetch get request to display all usernames in the combo box
+            fetch("php/getall.php", { credentials: "include" })
+                .then(response => response.json())
+                .then(function(row) {
+
+                    // iterates through all usernames in database adding each one
+                    for (var i = 0; i < row.length; i++) {
+                        var dropbox = document.getElementById("selectUser");
+                        var option = document.createElement("option");
+
+                        var item = option.text = row[i][2];
+                        if (item != username) {
+                            dropbox.add(option, dropbox[i + 1]);
+                        }
+                    }
+                })
+
+                // event listener for withdraw button
+                document.getElementById("withdraw").addEventListener("click", function() {
+
+                    // gets user data from HTML input elements for storing
+                    let message = document.getElementById("result");
+                    let selectedUser = document.getElementById("selectUser").value;
+                    let selectedAmount = document.getElementById("amount").value;
+
+                    if (selectedUser.length == 0) {
+                        message.innerHTML = "Please select a User";
+                    
+                    } else if (selectedAmount > parseInt(balance)) {
+                        message.innerHTML = "Insufficient Funds, try again";
+                    
+                    } else if (selectedAmount <= 0) {
+                        message.innerHTML = "Invalid Amount, try again";
+                    
+                    } else {
+                        // sends post request with selected user and amount wanting to be sent
+                        fetch("php/send.php", {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "selectedUser=" + selectedUser + "&selectedAmount=" + selectedAmount
+                        })
+
+                        // determines whether transaction went through
+                        .then(response => response.text())
+                        .then(function(result) {
+                            if (result == "success") {
+                                location.reload();
+                                alert("Your Funds have been Transferred");
+                            }
+                        });
+                    }
+                })
+        </script>
+    </body>
+</html>
