@@ -1,5 +1,6 @@
 <?php
 include("db_connect.php");
+check_session();
 
 // fetches row from database only on logged-in user
 $user = $db->query(

@@ -11,7 +11,7 @@ function check_session() {
 
 $db_hostname = "localhost";
 $db_username = "root";
-$db_password = "password";
+$db_password = "";
 $db_name = "db_bank";
 
 // connect to database
